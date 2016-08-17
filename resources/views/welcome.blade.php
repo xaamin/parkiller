@@ -1,253 +1,48 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
-    <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
-    <title>GeekOnJava: Directions Complex</title>
+   <meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+   <meta http-equiv="content-type" content="text/html; charset=UTF-8"/>
+   <title>Xaamin - Parkiller</title>
+   <style>
+      html{ 
+         height:100%; 
+      }
       
+      body{ 
+         height:100%; 
+         margin:0px;
+         font-family: Helvetica,Arial;
+      }
+   </style>
 
-    <style>
-        html{height:100%;}
-        body{height:100%;margin:0px;font-family: Helvetica,Arial;}
-    </style>
+   <script src="http://maps.google.com/maps/api/js?key=AIzaSyD-uRk4XfSL01xHPvdl1PgzXzIjJ2_3ytc&libraries=places"></script>
+   <script src="http://www.geocodezip.com/scripts/v3_epoly.js"></script>
+   <script type="text/javascript">
+   
+      var map; 
+      var position;
+      var infowindow = null;
+      function initialize() {   
 
-    <script type="text/javascript" src="http://maps.google.com/maps/api/js?key=AIzaSyD-uRk4XfSL01xHPvdl1PgzXzIjJ2_3ytc"></script>
-    <script type ="text/javascript" src="http://www.geocodezip.com/scripts/v3_epoly.js"></script>
-    <script type="text/javascript">
-  
-    var map;
-    var directionDisplay;
-    var directionsService;
-    var stepDisplay;
- 
-  var position;
-  var marker = [];
-  var polyline = [];
-  var poly2 = [];
-  var poly = null;
-  var startLocation = [];
-  var endLocation = [];
-  var timerHandle = [];
-    
-  
-  var speed = 0.000005, wait = 1;
-  var infowindow = null;
-  
-  var myPano;   
-  var panoClient;
-  var nextPanoId;
-  
-  var startLoc = new Array();
-  startLoc[0] = 'rio claro, trinidad';
-  startLoc[1] = 'preysal, trinidad';
-  startLoc[2] = 'san fernando, trinidad';
-  startLoc[3] = 'couva, trinidad';
+      infowindow = new google.maps.InfoWindow(
+      { 
+         size: new google.maps.Size(150,50)
+      });
 
-  var endLoc = new Array();
-  endLoc[0] = 'princes town, trinidad';
-  endLoc[1] = 'tabaquite, trinidad';
-  endLoc[2] = 'mayaro, trinidad';
-  endLoc[3] = 'arima, trinidad';
+      var myOptions = {
+         zoom: 10,
+         mapTypeId: google.maps.MapTypeId.ROADMAP
+      }
 
+      map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
-  var Colors = ["#FF0000", "#00FF00", "#0000FF"];
-
-
-function initialize() {  
-
-  infowindow = new google.maps.InfoWindow(
-    { 
-      size: new google.maps.Size(150,50)
-    });
-
-    var myOptions = {
-      zoom: 16,
-      mapTypeId: google.maps.MapTypeId.ROADMAP
-    }
-    map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
-
-    address = 'Trinidad and Tobago'
-    geocoder = new google.maps.Geocoder();
-    geocoder.geocode( { 'address': address}, function(results, status) {
-     map.fitBounds(results[0].geometry.viewport);
-
-    }); 
-  // setRoutes();
-  } 
-
-
-function createMarker(latlng, label, html) {
-// alert("createMarker("+latlng+","+label+","+html+","+color+")");
-    var contentString = '<b>'+label+'</b><br>'+html;
-    var marker = new google.maps.Marker({
-        position: latlng,
-        map: map,
-        title: label,
-        zIndex: Math.round(latlng.lat()*-100000)<<5
-        });
-        marker.myname = label;
-
-
-    google.maps.event.addListener(marker, 'click', function() {
-        infowindow.setContent(contentString); 
-        infowindow.open(map,marker);
-        });
-    return marker;
-}  
-
-function setRoutes(){   
-
-    var directionsDisplay = new Array();
-
-    for (var i=0; i< startLoc.length; i++){
-
-    var rendererOptions = {
-        map: map,
-        suppressMarkers : true,
-        preserveViewport: true
-    }
-    directionsService = new google.maps.DirectionsService();
-
-    var travelMode = google.maps.DirectionsTravelMode.DRIVING;  
-
-    var request = {
-        origin: startLoc[i],
-        destination: endLoc[i],
-        travelMode: travelMode
-    };  
-
-        directionsService.route(request,makeRouteCallback(i,directionsDisplay[i]));
-
-    }   
-
-
-    function makeRouteCallback(routeNum,disp){
-        if (polyline[routeNum] && (polyline[routeNum].getMap() != null)) {
-         startAnimation(routeNum);
-         return;
-        }
-        return function(response, status){
-          
-          if (status == google.maps.DirectionsStatus.OK){
-
-            var bounds = new google.maps.LatLngBounds();
-            var route = response.routes[0];
-            startLocation[routeNum] = new Object();
-            endLocation[routeNum] = new Object();
-
-
-            polyline[routeNum] = new google.maps.Polyline({
-            path: [],
-            strokeColor: '#FFFF00',
-            strokeWeight: 3
-            });
-
-            poly2[routeNum] = new google.maps.Polyline({
-            path: [],
-            strokeColor: '#FFFF00',
-            strokeWeight: 3
-            });     
-
-
-            // For each route, display summary information.
-            var path = response.routes[0].overview_path;
-            var legs = response.routes[0].legs;
-
-
-            disp = new google.maps.DirectionsRenderer(rendererOptions);     
-            disp.setMap(map);
-            disp.setDirections(response);
-
-
-            //Markers               
-            for (i=0;i<legs.length;i++) {
-              if (i == 0) { 
-                startLocation[routeNum].latlng = legs[i].start_location;
-                startLocation[routeNum].address = legs[i].start_address;
-                // marker = google.maps.Marker({map:map,position: startLocation.latlng});
-                marker[routeNum] = createMarker(legs[i].start_location,"start",legs[i].start_address,"green");
-              }
-              endLocation[routeNum].latlng = legs[i].end_location;
-              endLocation[routeNum].address = legs[i].end_address;
-              var steps = legs[i].steps;
-
-              for (j=0;j<steps.length;j++) {
-                var nextSegment = steps[j].path;                
-                var nextSegment = steps[j].path;
-
-                for (k=0;k<nextSegment.length;k++) {
-                    polyline[routeNum].getPath().push(nextSegment[k]);
-                    //bounds.extend(nextSegment[k]);
-                }
-
-              }
-            }
-
-         }       
-
-         polyline[routeNum].setMap(map);
-         //map.fitBounds(bounds);
-         startAnimation(routeNum);  
-
-    } // else alert("Directions request failed: "+status);
-
-  }
-
-}
-
-    var lastVertex = 1;
-    var stepnum=0;
-    var step = 50; // 5; // metres
-    var tick = 100; // milliseconds
-    var eol= [];
-//----------------------------------------------------------------------                
- function updatePoly(i,d) {
- // Spawn a new polyline every 20 vertices, because updating a 100-vertex poly is too slow
-    if (poly2[i].getPath().getLength() > 20) {
-          poly2[i]=new google.maps.Polyline([polyline[i].getPath().getAt(lastVertex-1)]);
-          // map.addOverlay(poly2)
-        }
-
-    if (polyline[i].GetIndexAtDistance(d) < lastVertex+2) {
-        if (poly2[i].getPath().getLength()>1) {
-            poly2[i].getPath().removeAt(poly2[i].getPath().getLength()-1)
-        }
-            poly2[i].getPath().insertAt(poly2[i].getPath().getLength(),polyline[i].GetPointAtDistance(d));
-    } else {
-        poly2[i].getPath().insertAt(poly2[i].getPath().getLength(),endLocation[i].latlng);
-    }
- }
-//----------------------------------------------------------------------------
-
-function animate(index,d) {
-   if (d>eol[index]) {
-
-      marker[index].setPosition(endLocation[index].latlng);
-      return;
-   }
-    var p = polyline[index].GetPointAtDistance(d);
-
-    //map.panTo(p);
-    marker[index].setPosition(p);
-    updatePoly(index,d);
-    timerHandle[index] = setTimeout("animate("+index+","+(d+step)+")", tick);
-}
-
-//-------------------------------------------------------------------------
-
-function startAnimation(index) {
-        if (timerHandle[index]) clearTimeout(timerHandle[index]);
-        eol[index]=polyline[index].Distance();
-        map.setCenter(polyline[index].getPath().getAt(0));
-
-        poly2[index] = new google.maps.Polyline({path: [polyline[index].getPath().getAt(0)], strokeColor:"#FFFF00", strokeWeight:3});
-
-        timerHandle[index] = setTimeout("animate("+index+",50)",2000);  // Allow time for the initial map display
-}
-
-//----------------------------------------------------------------------------    
-
-
+      address = 'Avenida Sonora 113, Roma Norte, Ciudad de México, D.F.';
+      geocoder = new google.maps.Geocoder();
+      geocoder.geocode( { 'address': address}, function(results, status) {
+         map.fitBounds(results[0].geometry.viewport);
+      }); 
+   } 
 
 </script>
 </head>
@@ -255,16 +50,135 @@ function startAnimation(index) {
 
 <div id="tools">
 
-    <button onclick="setRoutes();">Start</button>
+   <div>
+      <input id="addr" type="text" style="min-width: 500px" value="Doctores, Obrera, 06800 Ciudad de México, D.F., México" autofocus/>
+      <button type="button" name="search" id="search">Fijar</button>
+   
+      <br>
+   
+      <label for="clientes">Clientes</label>
+      <input type="text" id="clientes" value="15" placeholder="Clientes">
+      <label for="conductores">Conductores</label>
+      <input type="text" id="conductores" value="10" placeholder="Conductores">
+   </div>
 
 </div>
 
 <div id="map_canvas" style="width:100%;height:100%;"></div>
-<script src="http://www.google-analytics.com/urchin.js" type="text/javascript">
-</script>
 <script type="text/javascript">
-_uacct = "UA-162157-1";
-urchinTracker();
+   var marker = false;
+   var markers = [];
+   var bounds = new google.maps.LatLngBounds();
+
+   function showLocation() {
+      console.log('Source point: \n\tLatitude: ' + marker.position.lat() + '\n\tLongitude: ' + marker.position.lng());
+   }
+   
+   function searchAddr() {
+      var addrInput = document.getElementById('addr');
+
+      new google.maps.Geocoder().geocode( 
+         { 
+            'address': 
+            addrInput.value 
+         },
+         function(results, status)
+         {
+            if (status == google.maps.GeocoderStatus.OK) 
+            {
+               if(!marker)
+               {
+                  marker = new google.maps.Marker({
+                     map: map,
+                     draggable: true
+                  });
+                  
+                  google.maps.event.addListener(marker, 'click', showLocation);
+
+                  google.maps.event.addListener(marker, 'dragend', showLocation);
+               }
+               marker.setPosition(results[0].geometry.location);
+               map.setCenter(results[0].geometry.location);
+               map.setZoom(15)
+               addrInput.value = results[0].formatted_address;
+
+               // Delete markers
+               for (var i = markers.length - 1; i >= 0; i--) {
+                  markers[i].setMap(null);
+               }
+
+               markers = [];
+
+               showLocation();
+
+               start('./images/car.png', document.getElementById("conductores").value || 50, 'conductor');
+               start('./images/client.png', document.getElementById("clientes").value || 30, 'client');
+
+
+            } 
+            else 
+            {
+               alert("Geocode was not successful for the following reason: " + status);
+            }
+         }
+      );
+   }
+
+   function searchKeys(e) {
+      var code = ('charCode' in e) ? e.charCode : e.keyCode;
+
+      if(code != undefined && code == 13) {
+         searchAddr();
+      }
+   }
+
+   function start(icon, totalMarkers, markerType) {
+      var southWest = new google.maps.LatLng(19.435281340836195, -99.08507481152344);
+      var northEast = new google.maps.LatLng(marker.position.lat(), marker.position.lng());
+      var lngSpan = northEast.lng() - southWest.lng() + 0.021071063;
+      var latSpan = northEast.lat() - southWest.lat() - 0.000321654684213;
+
+      // Create some markers
+      for (var i = 1; i <= totalMarkers; i++) {
+            var location = new google.maps.LatLng((southWest.lat() + latSpan * Math.random()) - 0.006071063, (southWest.lng() + lngSpan * Math.random()) - 0.021071063);
+
+
+               bounds.extend(location);
+
+            var pinIcon = new google.maps.MarkerImage(
+                  icon,
+                  null, /* size is determined at runtime */
+                  null, /* origin is 0,0 */
+                  null, /* anchor is bottom center of the scaled image */
+                  new google.maps.Size(32, 32)
+            );
+
+            var _marker = new google.maps.Marker({
+                  position: location,
+                  map: map,                  
+                  icon: pinIcon,
+                  markerIdentifier: i + markers.length,
+                  markerType: markerType
+            });
+
+            markers.push(_marker);
+      }
+
+      if (bounds !== false) {
+         map.fitBounds(bounds);
+      }
+
+      console.log('Added ' + totalMarkers + ' markers for ' + markerType);
+   }
+
+   document.getElementById("search").addEventListener("click", searchAddr);
+
+   var input = document.getElementById("addr");
+
+   input.addEventListener("keypress", searchKeys);
+
+   var autocomplete = new google.maps.places.Autocomplete(input);
+
 </script>
 </body>
 </html>
