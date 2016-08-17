@@ -11,6 +11,12 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', 'RealtimeController@index');
+
+Route::get('/markers', 'RealtimeController@markers');
+
+Route::post('/markers', 'RealtimeController@start');
+
+Route::post('/direction', 'RealtimeController@update');
+
+Route::get('/simulation', 'SimulationController@index');

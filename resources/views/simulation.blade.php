@@ -17,30 +17,17 @@
    </style>
 
    <script src="http://maps.google.com/maps/api/js?key=AIzaSyD-uRk4XfSL01xHPvdl1PgzXzIjJ2_3ytc&libraries=places,geometry"></script>
-   <script src="http://www.geocodezip.com/scripts/v3_epoly.js"></script>
+   <script src="http://192.168.48.1:8080/socket.io/socket.io.js"></script>
+   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
 </head>
 <body>
-
-   <div>
-
-      <input id="addr" type="text" style="min-width: 500px" value="Doctores, Obrera, 06800 Ciudad de México, D.F., México" autofocus/>
-      <button type="button" name="search" id="search">Fijar</button>
-      
-      <br>
-      
-      <label for="clientes">Clientes</label>
-      <input type="text" id="clientes" value="15" placeholder="Clientes">
-      <label for="conductores">Conductores</label>
-      <input type="text" id="conductores" value="10" placeholder="Conductores">
-
-   </div>
 
    <div id="directions_panel"></div>
    <div id="direction_details"></div>
    <div id="map_canvas" style="width:100%;height:100%;"></div>
 
    <footer>
-      <script src="./app/js/controllers/realtime.controller.js"></script>
+      <script src="./app/js/controllers/simulation.controller.js"></script>
    </footer>
 
 </body>
