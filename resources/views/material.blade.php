@@ -22,11 +22,24 @@
     <script src="./vendor/angular-material-data-table/dist/md-data-table.min.js"></script>
     <script src="./vendor/angular-messages/angular-messages.min.js"></script>
 
-    <!-- Maint JS -->
+    <!-- Plugins -->
+    <script src="http://maps.google.com/maps/api/js?key=AIzaSyD-uRk4XfSL01xHPvdl1PgzXzIjJ2_3ytc&libraries=places,geometry"></script>
+    <script type="text/javascript" src="{{ url('')  }}:8080/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"  ></script>
+
+   <script type="text/javascript">
+         _BASE_ = "{{ url('') }}";
+   </script>
+    <!-- Main JS -->
     <script src="./app/js/app.js"></script>
     
     <!-- Controllers -->
+    <script src="./app/js/controllers/app.controller.js"></script>
     <script src="./app/js/controllers/realtime.controller.js"></script>
     <script src="./app/js/controllers/simulation.controller.js"></script>
+    <script src="./app/js/controllers/details.controller.js"></script>
+
+    <!-- -->
+    <script src="./app/js/services/color.service.js"></script>
 </body>
 </html>
