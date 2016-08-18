@@ -17,3 +17,7 @@ ng-md-icon svg {
 	min-width: 25px;
 	border-radius: 99%!important;
 }
+
+md-toolbar.md-primary, .ng-md-icon {
+  	fill: #fff;
+}
