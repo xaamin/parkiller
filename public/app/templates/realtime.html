@@ -1,0 +1,47 @@
+<md-toolbar class="md-table-toolbar md-default">
+  	<div class="md-toolbar-tools">
+  		<md-button ng-click="app.toggle()" class="menu-toolbar-button">
+	    	<ng-md-icon icon="menu"></ng-md-icon>
+	   	</md-button>
+    	<span flex>Realtime</span>
+        <md-button aria-label="Search" class="menu-toolbar-button" ng-click="vm.showOptions = !vm.showOptions">
+        	<ng-md-icon icon="filter_list"></ng-md-icon>
+        </md-button>
+  	</div>
+</md-toolbar>
+
+<md-content layout-padding layout="column" flex>
+	
+	<md-content layout-padding ng-show="vm.showOptions">
+    	<div>
+     		<form name="filterForm">
+        		<div layout-gt-xs="row">
+			       	<md-input-container layout-xs="row" flex-gt-xs>
+			        	<label>Clientes</label>
+			        	<input id="clientes" ng-model="vm.map.clients">
+			      	</md-input-container>
+
+			      	<md-input-container layout-xs="row" flex-gt-xs>
+			        	<label>Conductores</label>
+			        	<input id="conductores" ng-model="vm.map.drivers">
+			      	</md-input-container>
+	        	</div>
+	        	<div layout-gt-xs="row">
+					<md-input-container layout-xs="row" flex-gt-xs>
+			        	<label>Dirección de inicio</label>
+			        	<input id="addr" ng-model="vm.map.address">
+			      	</md-input-container>
+
+			      	<md-input-container layout-xs="row" flex-gt-xs>
+			      		<md-button name="search" id="search" class="md-raised md-primary">Fijar</md-button>
+			      	</md-input-container>
+	        	</div>
+	        </form>
+	    </div>
+	</md-content>
+	
+	<md-content layout-padding layout="row" flex>
+		<div flex id="map_canvas"></div>	
+	</md-content>
+
+</md-content>

@@ -1,0 +1,22 @@
+<md-sidenav layout="column" md-component-id="left" class="md-sidenav-left md-whiteframe-z2">
+	<md-toolbar class="md-primary">
+		<div class="md-toolbar-tools">
+			<h4>Parkiller</h4>
+		</div>
+	</md-toolbar>
+	<md-content layout="column" flex>
+		<md-list>
+			<md-list-item ui-sref="app.realtime">
+				<p> Mapa</p>
+			</md-list-item>
+			<md-list-item ui-sref="app.simulation">
+				<p> Simulador </p>
+			</md-list-item>
+			<md-list-item ui-sref="app.details">
+				<p> Detalles </p>
+			</md-list-item>
+		</md-list>
+	</md-content>
+</md-sidenav>
+
+<div ui-view="content" layout="column" flex></div>

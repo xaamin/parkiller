@@ -1,0 +1,19 @@
+html{ 
+	height:100%; 
+}
+      
+body{ 
+    height:100%; 
+    margin:0px;
+	font-family: Helvetica,Arial;
+}
+
+ng-md-icon svg {
+    display: block;
+    margin: 0 auto!important;
+}
+
+.menu-toolbar-button {
+	min-width: 25px;
+	border-radius: 99%!important;
+}

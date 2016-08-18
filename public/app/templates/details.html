@@ -1,0 +1,36 @@
+<md-toolbar class="md-table-toolbar md-default">
+  	<div class="md-toolbar-tools">
+  		<md-button ng-click="app.toggle()" class="menu-toolbar-button">
+	    	<ng-md-icon icon="menu"></ng-md-icon>
+	   	</md-button>
+    	<span flex>Detalles</span>
+  	</div>
+</md-toolbar>
+
+<md-content layout-padding layout="column" flex>
+	
+	<md-table-container>
+		<table md-table ng-model="vm.selected" md-progress="vm.promise">
+			   <thead md-head>
+			    <tr md-row>
+					   <th md-column>#</th>
+					   <th md-column>Marker</th>
+					   <th md-column>Latitud</th>
+					   <th md-column>Longitud</th>
+					   <th md-column>Afinidad</th>
+				</tr>
+			  </thead>
+			  <tbody md-body>
+			     <!-- we can let ng-repeat sort the columns for us -->
+			     <tr md-row ng-repeat="marker in vm.markers">
+			      <td md-cell>{{ marker.markerIdentifier }}</td>
+			      <td md-cell>{{ marker.markerType }}</td>
+			      <td md-cell>{{ marker.latitude }}</td>
+			      <td md-cell>{{ marker.longitude }}</td>
+			      <td md-cell>{{ marker.closestMarker }}</td>
+			     </tr>
+			  </tbody>
+		</table>
+	</md-table-container>
+
+</md-content>
