@@ -1,0 +1,13 @@
+{
+  "name": "eculab",
+  "private": "true",
+  "devDependencies": {},
+  "dependencies": {
+    "angular": "^1.5.5",
+    "angular-material": "^1.0.8",
+    "angular-ui-router": "^0.2.18",
+    "angular-material-icons": "^0.7.0",
+    "angular-material-data-table": "^0.10.9",
+    "angular-messages": "^1.5.8"
+  }
+}
