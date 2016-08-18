@@ -3,9 +3,26 @@
    var marker = false;
    var markers = [];
    var bounds = new google.maps.LatLngBounds();   	
-   var simulation = io.connect('http://192.168.48.1:8080/simulation');
+   var simulation = io.connect(_BASE_ + ':8080/simulation');
         
    simulation.on('clear-markers', function (data) {
+      for (var i = 0; i < markers.length; i++) {
+         markers[i].setMap(null);
+
+         if (markers[i].polyline) {
+            markers[i].polyline.setMap(null);
+            markers[i].polyline.setPath([]);
+         }
+
+         markers[i].wasAddedToRoute = false;
+      }
+
+      if (markers.length) {
+         delete markers;
+         markers = [];
+         console.log('Clear markers');
+      }
+      
       processMarkersData(data);
    });
 

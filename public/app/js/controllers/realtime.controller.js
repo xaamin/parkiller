@@ -3,7 +3,7 @@
    var marker = false;
    var markers = [];
    var bounds = new google.maps.LatLngBounds();   	
-   var simulation = io.connect('http://192.168.48.1:8080/simulation');
+   var simulation = io.connect(_BASE_ + ':8080/simulation');
 
    simulation.on('marker-update', function (data) {
       console.log('Receiving marker update position');
