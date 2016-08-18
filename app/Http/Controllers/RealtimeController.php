@@ -15,7 +15,7 @@ class RealtimeController extends Controller
 
 	public function index()
 	{
-		return view('realtime');
+		return view('material');
 	}
 
 	public function markers()
