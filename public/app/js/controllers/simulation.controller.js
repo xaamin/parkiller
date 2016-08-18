@@ -8,10 +8,12 @@
    simulation.on('clear-markers', function (data) {
       for (var i = 0; i < markers.length; i++) {
          markers[i].setMap(null);
+         console.log(markers[i]);
 
          if (markers[i].polyline) {
             markers[i].polyline.setMap(null);
             markers[i].polyline.setPath([]);
+            console.log('Deleteing polyline for ' + i);
          }
 
          markers[i].wasAddedToRoute = false;
@@ -48,9 +50,10 @@
             start(data.markers[i]);
          }
 
-         for (var i = 0; i < data.markers.length; i++) {
-            if (data.markers[i].closestMarker && data.markers[i].markerType == 'driver') {
-               drawRouteWalking(data.markers[i], i)
+         for (var i = 0; i < markers.length; i++) {
+            console.log(i, markers[i]);
+            if (markers[i].closestMarker && markers[i].markerType == 'driver') {
+               drawRouteWalking(markers[i], i)
             }
          }
       }
@@ -95,6 +98,7 @@
                         icon: pinIcon,
                         markerIdentifier: markerRaw.markerIdentifier,
                         markerType: markerRaw.markerType,
+                        closestMarker: markerRaw.closestMarker,
                         wasAddedToRoute: false,
                         draggable: true
                   });

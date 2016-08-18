@@ -6,7 +6,7 @@
    var simulation = io.connect(_BASE_ + ':8080/simulation');
 
    simulation.on('marker-update', function (data) {
-      console.log('Receiving marker update position');
+      console.log('Receiving marker ' +  + ' update position ');
       if (data) {
          var newPosition = new google.maps.LatLng(data.latitude, data.longitude);
          for (var i = 0; i < markers.length; i++) {
