@@ -15,9 +15,9 @@
 			    <tr md-row>
 					   <th md-column>#</th>
 					   <th md-column>Marker</th>
-					   <th md-column>Latitud</th>
-					   <th md-column>Longitud</th>
-					   <th md-column>Afinidad</th>
+					   <th md-column>Afinidad/Cliente|Conductor</th>
+					   <th md-column>Distancia</th>
+					   <th md-column>Tiempo</th>
 				</tr>
 			  </thead>
 			  <tbody md-body>
@@ -25,9 +25,9 @@
 			     <tr md-row ng-repeat="marker in vm.markers">
 			      <td md-cell>{{ marker.markerIdentifier }}</td>
 			      <td md-cell>{{ marker.markerType }}</td>
-			      <td md-cell>{{ marker.latitude }}</td>
-			      <td md-cell>{{ marker.longitude }}</td>
 			      <td md-cell>{{ marker.closestMarker }}</td>
+			      <td md-cell>{{ marker.distance }}</td>
+			      <td md-cell>{{ marker.time }}</td>
 			     </tr>
 			  </tbody>
 		</table>
