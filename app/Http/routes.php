@@ -15,10 +15,18 @@ Route::get('/', 'RealtimeController@index');
 
 Route::get('/markers', 'RealtimeController@markers');
 
-Route::post('/markers', 'RealtimeController@start');
+Route::post('/markers', 'RealtimeController@store');
 
-Route::post('/direction', 'RealtimeController@update');
+Route::put('/direction', 'RealtimeController@update');
 
 Route::get('test', function () {
+	/**
+	 * Testing marker position update smoothly
+	 * 
+	 * TODO:
+	 *  Integrate algorithm in simulation page
+	 *  Move markers and update polyfill in map page
+	 *  Move markers and create path from origin to current position
+	 */
 	return view('index');
 });
