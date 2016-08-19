@@ -1,288 +1,280 @@
 (function () {
-   var app = angular.module('parkiller');
+    var app = angular.module('parkiller');
 
-   app. controller('RealtimeController', RealtimeController)
+    app. controller('RealtimeController', RealtimeController)
 
-   RealtimeController.$inject = ['$scope', '$window', '$timeout']
+    RealtimeController.$inject = ['$scope', '$window', '$timeout', 'MapService', '$http']
 
-   function RealtimeController($scope, $window, $timeout) {
-      console.log('Realtime controller started');
-      var map; 
-      var marker = false;
-      var markers = [];
-      var bounds = new google.maps.LatLngBounds();   	
-      var simulation = io.connect(_BASE_ + ':8080/simulation');
+    function RealtimeController($scope, $window, $timeout, MapService, $http) {
+        console.log('Realtime controller started');
+        var map; 
+        var marker = false;
+        var markers = [];
+        var bounds = new google.maps.LatLngBounds();    	
+        var simulation = io.connect(_BASE_ + ':8080/simulation');
 
-      var vm = this;
+        var vm = this;
 
-      vm.map = {
-            address: 'Doctores, Obrera, 06800 Ciudad de México, D.F., México',
-            clients: 15,
-            drivers: 10
-         };
+        vm.map = {
+                address: 'Doctores, Obrera, 06800 Ciudad de México, D.F., México',
+                clients: 15,
+                drivers: 10
+            };
 
-      vm.showOptions = false;
+        vm.showOptions = false;
 
-      simulation.on('marker-update', function (data) {
-         console.log('Receiving marker ' +  + ' update position ');
-         if (data) {
-            var newPosition = new google.maps.LatLng(data.latitude, data.longitude);
-            for (var i = 0; i < markers.length; i++) {
-               if (markers[i].markerIdentifier == data.markerIdentifier) {
-                  markers[i].setPosition(newPosition);
-                  break;
-               }
+        simulation.on('marker-update', function (data) {
+            console.log('Receiving marker ' +  data.markerIdentifier + ' update position', data);
+            if (data) {
+                var newPosition = new google.maps.LatLng(data.latitude, data.longitude);
+                for (var i = 0; i < markers.length; i++) {
+                    if (markers[i].markerIdentifier == data.markerIdentifier) {
+                        markers[i].setPosition(newPosition);
+                        updateMarkerPolyfill(markers[i]);
+                        break;
+                    }
+                }
             }
-         }
-      });
+        });
 
-      function initialize() {
-   	  	var myOptions = {
-   	  	 	zoom: 10,
-   	  	  	mapTypeId: google.maps.MapTypeId.ROADMAP
-   	  	}
+        function initialize() {
+    	  	var myOptions = {
+                            zoom: 10,
+                        	mapTypeId: google.maps.MapTypeId.ROADMAP
+                        };
 
-   	  	map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+    	  	map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
 
-   	  	address = 'Avenida Sonora 113, Roma Norte, Ciudad de México, D.F.';
+    	  	address = 'Avenida Sonora 113, Roma Norte, Ciudad de México, D.F.';
 
-   	  	geocoder = new google.maps.Geocoder();
-   	   	geocoder.geocode({ 'address': address }, function(results, status) {
-   	  		map.fitBounds(results[0].geometry.viewport);
-   	  	});
-      }
+    	  	geocoder = new google.maps.Geocoder();
+    	    	geocoder.geocode({ 'address': address }, function(results, status) {
+    	  		map.fitBounds(results[0].geometry.viewport);
+    	  	});
+        }
 
-      function showLocation() {
-        	console.log('Source point: \n\tLatitude: ' + marker.position.lat() + '\n\tLongitude: ' + marker.position.lng());
-      }
-      	
-      function searchAddr() {
-         vm.showOptions = false;
+        function showLocation() {
+          	console.log('Source point: \n\tLatitude: ' + marker.position.lat() + '\n\tLongitude: ' + marker.position.lng());
+        }
+        	
+        function searchAddr() {
+            vm.showOptions = false;
 
-        	var addrInput = document.getElementById('addr');
+          	var addrInput = document.getElementById('addr');
 
-        	new google.maps.Geocoder().geocode({ 
-        	   	'address': addrInput.value 
-            },
-      	   function(results, status) {
-      	     	if (status == google.maps.GeocoderStatus.OK) {
-      	      	if(!marker) {
-      	     	   	marker = new google.maps.Marker({
-      	     	   	   	   	map: map,
-      	     	   	   	   	draggable: true
-      	      	   	   	});
-      	   	   	   	   	   	
-      	     	   	google.maps.event.addListener(marker, 'click', showLocation);
+            MapService
+                .createMarkerFromAddress(addrInput.value)
+                .then(function (result) {
+                    console.log(result)
+                    if(!marker) {
+                        marker = result.marker
+                        marker.setMap(map);
+                                                    
+                        google.maps.event.addListener(marker, 'click', showLocation);
 
-      	     	   	google.maps.event.addListener(marker, 'dragend', showLocation);
-      	      	}
+                        google.maps.event.addListener(marker, 'dragend', showLocation);
+                    }
 
-         	      marker.setPosition(results[0].geometry.location);
-         	      map.setCenter(results[0].geometry.location);
-         	      map.setZoom(15)
-         	   	addrInput.value = results[0].formatted_address;
+                    marker.setPosition(result.result.geometry.location);
+                    map.setCenter(result.result.geometry.location);
+                    map.setZoom(15)
+                    addrInput.value = result.result.formatted_address;
 
-                  // Delete markers
-         	   	for (var i = 0; i < markers.length; i++) {
-                     markers[i].setMap(null);
+                    deleteMarkers();
+                    
+                    showLocation();
 
-         	   	   if (markers[i].polyline) {
-         	   	      markers[i].polyline.setMap(null);
-      			    	   markers[i].polyline.setPath([]);
-        	   	   	}
+                    renderMarkersOnMap();
 
-                     markers[i].wasAddedToRoute = false;
-         	   	}
+                    sendMarkersToBackend();
+                    
+                }, function (error) {
+                    console.log(error);
+                });
+        }
 
-                  if (markers.length) {
-                     delete markers;
-                     markers = [];
-                     console.log('Clear markers');
-                  }
+        function renderMarkersOnMap() {
+            var clients = document.getElementById("clientes").value || 50;
+            var drivers = document.getElementById("conductores").value || 30;
 
-      	   	   showLocation();
+            start('./images/car.png', drivers, 'driver');
+            start('./images/client.png', clients, 'client');
 
-                  var clients = document.getElementById("clientes").value || 50;
-                  var drivers = document.getElementById("conductores").value || 30;
+            console.log('Emulate searching for closest location...');
+        }
 
-      	   	   start('./images/car.png', drivers, 'driver');
-      	   	   start('./images/client.png', clients, 'client');
+        function updateMarkerPolyfill(marker) {
+            // Draw directions
+            if (marker.closestMarker && marker.markerType == 'driver') {
+                var closestMarker;
 
-                  console.log('Emulate searching for closest location...');
+                for (var i = 0; i < markers.length; i++) {
+                    if (markers[i].markerIdentifier == marker.closestMarker) {
+                        closestMarker = i;
+                        break;
+                    }
+                }
 
-                  var parameters = {
-                     markers: [],
-                     marker: {
-                        latitude: marker.getPosition().lat(), 
-                        longitude: marker.getPosition().lng()
-                     }
-                  };
+                if (closestMarker) {
+                    drawRouteWalking(marker, closestMarker, 0);
+                }                
+            }
+        }
 
-                  for (var i = 0; i < markers.length; i++) {
-                     if (markers[i].markerType == 'driver') {
-                        closestMarker(markers[i]);
-                     }
+        function sendMarkersToBackend() {
+            var parameters = {
+                markers: [],
+                marker: {
+                    latitude: marker.getPosition().lat(), 
+                    longitude: marker.getPosition().lng()
+                }
+            };
 
-                     parameters.markers.push({ markerType: markers[i].markerType, markerIdentifier: markers[i].markerIdentifier, latitude: markers[i].getPosition().lat(), longitude: markers[i].getPosition().lng(), closestMarker: markers[i].closestMarker, markerIcon: markers[i].markerIcon });
-                  }
+            for (var i = 0; i < markers.length; i++) {
+                if (markers[i].markerType == 'driver') {
+                    closestMarker(markers[i]);
+                }
 
-                  console.log(parameters);
+                parameters.markers.push({ markerType: markers[i].markerType, markerIdentifier: markers[i].markerIdentifier, latitude: markers[i].getPosition().lat(), longitude: markers[i].getPosition().lng(), closestMarker: markers[i].closestMarker, markerIcon: markers[i].markerIcon });
+            }
 
-                  $.post('/markers', parameters, function (response) {
-                     console.log('Succesfull markers registration');
-                  });
+            $http
+                .post('/markers', parameters)
+                .then(function (response) {
+                    console.log('Succesfull markers registration in backend');
+                }, function (error) {
+                    console.log('Error regitering markers in backend', error)
+                });
 
-                  simulation.emit('start-simulation', parameters);
+                emitEventsToRestartSimulationMarkers(parameters);
+        }
 
-     	   	   } else {
-      	   	   alert("Geocode was not successful for the following reason: " + status);
-               }
-      	   });
-      	}
+        function emitEventsToRestartSimulationMarkers(parameters) {
+            console.log('Sending start-simulation event', parameters);
+            simulation.emit('start-simulation', parameters);  
+        }
 
-      	function searchKeys(e) {
-      	   var code = ('charCode' in e) ? e.charCode : e.keyCode;
+        function deleteMarkers() {
+            // Delete markers
+            for (var i = 0; i < markers.length; i++) {
+                markers[i].setMap(null);
 
-      	   if(code != undefined && code == 13) {
-      	     	searchAddr();
-      	   }
-      	}
+                if (markers[i].polyline) {
+                    markers[i].polyline.setMap(null);
+                    markers[i].polyline.setPath([]);
+                }
 
-      	function start(icon, totalMarkers, markerType) {
-      	   var southWest = new google.maps.LatLng(19.435281340836195, -99.08507481152344);
-      	   var northEast = new google.maps.LatLng(marker.position.lat(), marker.position.lng());
-      	   var lngSpan = northEast.lng() - southWest.lng() + 0.021071063;
-      	   var latSpan = northEast.lat() - southWest.lat() - 0.000321654684213;
+                markers[i].wasAddedToRoute = false;
+            }
 
-      	   // Create some markers
-      	   for (var i = 1; i <= totalMarkers; i++) {
-      	     	var location = new google.maps.LatLng((southWest.lat() + latSpan * Math.random()) - 0.006071063, (southWest.lng() + lngSpan * Math.random()) - 0.021071063);
+            if (markers.length) {
+                delete markers;
+                markers = [];
+                console.log('Clear markers');
+            }
+        }
 
-      	    	bounds.extend(location);
+        function searchKeys(e) {
+            var code = ('charCode' in e) ? e.charCode : e.keyCode;
 
-      	     	var pinIcon = new google.maps.MarkerImage(
-      	             	   	icon,
-      		   	   	      null, /* size is determined at runtime */
-      	   	   	   	   null, /* origin is 0,0 */
-      	      	   	      null, /* anchor is bottom center of the scaled image */
-      	   	   	   	   new google.maps.Size(32, 32)
-      	   	   	      );
+            if(code != undefined && code == 13) {
+              	searchAddr();
+            }
+        }
 
-      	   	var _marker = new google.maps.Marker({
-      	   	   	   	   position: location,
-      	   	   	   	   map: map,   	   	   	   	   	   	
-      	   	   	   	   icon: pinIcon,
-      	           	   	   markerIdentifier: markers.length + 1,
-      	   	   	   	   markerType: markerType,
-      	   	   	   	   wasAddedToRoute: false,
-                              markerIcon: icon
-      	   	   	      });
+        function start(icon, totalMarkers, markerType) {
+            var southWest = new google.maps.LatLng(19.435281340836195, -99.08507481152344);
+            var northEast = new google.maps.LatLng(marker.position.lat(), marker.position.lng());
+            var lngSpan = northEast.lng() - southWest.lng() + 0.021071063;
+            var latSpan = northEast.lat() - southWest.lat() - 0.000321654684213;
 
-      	   	markers.push(_marker);
+            // Create some markers
+            for (var i = 1; i <= totalMarkers; i++) {
+                var rawMarker = {
+                                latitude: (southWest.lat() + latSpan * Math.random()) - 0.006071063, 
+                                longitude: (southWest.lng() + lngSpan * Math.random()) - 0.021071063,
+                                markerIdentifier: markers.length + 1,
+                                markerType: markerType,
+                                wasAddedToRoute: false,
+                                markerIcon: icon
+                            };
 
-      	   	google.maps.event.addListener(_marker, 'click', function (marker) {
-      	   		console.log(this.markerIdentifier + ' : ' + this.markerType)
-      	   	});
-      	   }
+                var result = MapService.createMarkerFromRawMarker(rawMarker, false);
+                var _marker = result.marker;
 
-      	   if (bounds !== false) {
-      	     	map.fitBounds(bounds);
-      	   }
+                _marker.setMap(map);
 
-      	   console.log('Added ' + totalMarkers + ' markers for ' + markerType);
-      	}
+                bounds.extend(result.location);
 
-      	function closestMarker(marker) {
-   	      var closestMarker = -1;
-   	      var closestDistance = Number.MAX_VALUE;
+            	markers.push(_marker);
+
+            	google.maps.event.addListener(_marker, 'click', function (marker) {
+            		console.log(this.markerIdentifier + ' : ' + this.markerType)
+            	});
+            }
+
+            if (bounds !== false) {
+              	map.fitBounds(bounds);
+            }
+
+            console.log('Added ' + totalMarkers + ' markers for ' + markerType);
+        }
+
+        function closestMarker(marker) {
+    	    var closestMarker = -1;
+            var closestDistance = Number.MAX_VALUE;
 
             if (marker.markerType == 'driver') {
-      	      for(i = 0; i < markers.length; i++) {
-      	    	   if (markers[i].markerType == 'client' && markers[i].markerIdentifier != marker.markerIdentifier && !markers[i].wasAddedToRoute) {
-      		         var distance = google.maps.geometry.spherical.computeDistanceBetween(markers[i].getPosition(), marker.getPosition());
+                for(i = 0; i < markers.length; i++) {
+    	     	    if (markers[i].markerType == 'client' && markers[i].markerIdentifier != marker.markerIdentifier && !markers[i].wasAddedToRoute) {
+    		            var distance = MapService.computeDistanceBetween(markers[i], marker);
 
-      		         if ( distance < closestDistance ) {
-      		            closestMarker = i;
-      		            closestDistance = distance;
-      		         }
-      		      }
-      	      }
-
-      	      if (markers[closestMarker]) {
-      	    	   console.log('Closest location for ' + marker.markerType + ' ' + marker.markerIdentifier + ' is marker ' + markers[closestMarker].markerIdentifier + ' [' + closestMarker + ' -> ' + closestDistance + '] ' + markers[closestMarker].markerType);
-
-      		      markers[closestMarker].wasAddedToRoute = true;
-      		      marker.wasAddedToRoute = true;
-                  markers[closestMarker].closestMarker = marker.markerIdentifier;
-                  marker.closestMarker = markers[closestMarker].markerIdentifier;
-
-      		      drawRouteWalking(marker, closestMarker);
-      	      } else {
-      	    	   console.log('Unable to locate marker ' + closestMarker + ' for ' + marker.markerIdentifier + '. Request more drivers :) ' + '.Type: ' + marker.markerType);
-      	      }
+                        if ( distance < closestDistance ) {
+        		            closestMarker = i;
+        		            closestDistance = distance;
+        		        }
+        		    }
+        	    }
             }
-   	   }
 
-   	function drawRouteWalking(marker, closestMarker) {
-   		var directionsService = new google.maps.DirectionsService(); 
-   	    
-   	   var polyline = new google.maps.Polyline({
-   			path: [],
-   			strokeColor: Color.random(),
-   			strokeWeight: 3
-   		});
+        	if (markers[closestMarker]) {
+        	    console.log('Closest location for ' + marker.markerType + ' ' + marker.markerIdentifier + ' is marker ' + markers[closestMarker].markerIdentifier + ' [' + closestMarker + ' -> ' + closestDistance + '] ' + markers[closestMarker].markerType);
 
-   		var request = { 
-   			origin: marker.getPosition(), 
-   			destination: markers[closestMarker].getPosition(), 
-   			travelMode: google.maps.DirectionsTravelMode.WALKING 
-   		};
+        	    markers[closestMarker].wasAddedToRoute = true;
+        	    marker.wasAddedToRoute = true;
+                markers[closestMarker].closestMarker = marker.markerIdentifier;
+                marker.closestMarker = markers[closestMarker].markerIdentifier;
 
-   		if (!marker.polyline) {
-   			marker.polyline = polyline;
-   			console.log('Marker ' +  marker.markerIdentifier + ' : ' +  marker.markerType + ' doesn\'t have Polyline');
-   		} else {
-   			// Remove route from map
-   		    marker.polyline.setMap(null);
-   		    marker.polyline.setPath([]);
-   		    console.log('Marker ' +  marker.markerIdentifier + ' : ' +  marker.markerType + ' have Polyline');
-   		}
+        	    drawRouteWalking(marker, closestMarker);
+            } else {
+    	 	    console.log('Unable to locate marker ' + closestMarker + ' for ' + marker.markerIdentifier + '. Request more drivers :) ' + '.Type: ' + marker.markerType);
+            }
+        }
 
-   	   directionsService.route(request, function(response, status) {
-   	      if (status == google.maps.DirectionsStatus.OK) {
-   	        	var route = response.routes[0];
-   	        			
-   				var path = response.routes[0].overview_path;
-   				var legs = response.routes[0].legs;
-   	        
-   	        	for (i = 0; i < legs.length; i++) {
-   	        		var steps = legs[i].steps;
+    	function drawRouteWalking(marker, closestMarker) {
+    		MapService
+                .getPolylineForMap(marker, markers[closestMarker])
+                .then(function (result) {
+                    $timeout(function () {
+                        marker = result.origin;
+                        markers[closestMarker] = result.destination;
+                        marker.polyline.setMap(map);
+                    });
+                }, function (error) {
+                    console.log('Error', error);
+                });
+    	}
 
-   	          		for (j = 0; j < steps.length; j++) {
-   	            		var nextSegment = steps[j].path;
+        $timeout(function () {
+            document.getElementById("search").addEventListener("click", searchAddr);
 
-   	            		for ( k = 0; k < nextSegment.length; k++) {
-   	              			marker.polyline.getPath().push(nextSegment[k]);
-   	            		}
-   	          		}
-   	        	}
+            var input = document.getElementById("addr");
 
-   	        	marker.polyline.setMap(map);
-   	        	console.log('Route from ' + marker.markerIdentifier + ' to ' + markers[closestMarker].markerIdentifier)
-   	      	}
-   	    });
-   	}
+            input.addEventListener("keypress", searchKeys);
 
-      $timeout(function () {
-         document.getElementById("search").addEventListener("click", searchAddr);
-
-         var input = document.getElementById("addr");
-
-         input.addEventListener("keypress", searchKeys);
-
-         var autocomplete = new google.maps.places.Autocomplete(input);
-
-         initialize();
-      });
-   }
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            
+            initialize();
+        }, 300);
+    }
 })();
