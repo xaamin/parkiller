@@ -16,7 +16,7 @@
         }
     }('Color', function () {
     	var service = {};
-
+        
     	service.random = function () {
          	var letters = '0123456789ABCDEF';
          	var color = '#';
