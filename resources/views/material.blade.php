@@ -25,11 +25,10 @@
     <!-- Plugins -->
     <script src="http://maps.google.com/maps/api/js?key=AIzaSyD-uRk4XfSL01xHPvdl1PgzXzIjJ2_3ytc&libraries=places,geometry"></script>
     <script type="text/javascript" src="{{ url('')  }}:8080/socket.io/socket.io.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.0/jquery.min.js"  ></script>
 
-   <script type="text/javascript">
+    <script type="text/javascript">
          _BASE_ = "{{ url('') }}";
-   </script>
+    </script>
     <!-- Main JS -->
     <script src="./app/js/app.js"></script>
     
@@ -41,5 +40,6 @@
 
     <!-- -->
     <script src="./app/js/services/color.service.js"></script>
+    <script src="./app/js/services/map.service.js"></script>
 </body>
 </html>
